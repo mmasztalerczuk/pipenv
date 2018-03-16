@@ -73,6 +73,6 @@ PYENV_ROOT = os.environ.get('PYENV_ROOT', os.path.expanduser('~/.pyenv'))
 PYENV_INSTALLED = (
     bool(os.environ.get('PYENV_SHELL')) or bool(os.environ.get('PYENV_ROOT'))
 )
-SESSION_IS_INTERACTIVE = bool(os.isatty(sys.stdout.fileno()))
+SESSION_IS_INTERACTIVE = True #bool(os.isatty(sys.stdout.fileno()))
 PIPENV_SHELL = os.environ.get('SHELL') or os.environ.get('PYENV_SHELL')
 PIPENV_CACHE_DIR = os.environ.get('PIPENV_CACHE_DIR', user_cache_dir('pipenv'))

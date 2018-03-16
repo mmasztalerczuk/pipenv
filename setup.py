@@ -24,7 +24,7 @@ required = [
     'virtualenv-clone>=0.2.5',
     'pathlib;python_version<"3.4"',
     'requests[security];python_version<"3.0"',
-    'ordereddict;python_version<"3.0"',
+    'ordereddict;python_version<"3.0"', 'ipdb',
 ]
 
 

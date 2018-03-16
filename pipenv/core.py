@@ -53,7 +53,7 @@ from .utils import (
     is_pinned,
     is_star,
     TemporaryDirectory,
-)
+    pypy_version)
 from .__version__ import __version__
 from .import pep508checker, progress
 from .environments import (
@@ -412,6 +412,21 @@ def find_python_in_path(python):
 
 def find_a_system_python(python):
     """Finds a system python, given a version (e.g. 2 / 2.7 / 3.6.2), or a full path."""
+
+    if python.startswith('pypy'):
+        path = system_which('pypy', True)
+
+        if type(path) is list:
+            for p in path:
+                version = pypy_version(p)
+                ver_pre, ver_post = version.split("-")
+                pyt_pre, pyt_post = python.split("-")
+
+                if ver_pre.startswith(pyt_pre) and ver_post.startswith(pyt_post):
+                    return p
+
+        return None
+
     if python.startswith('py'):
         return system_which(python)
 
@@ -510,8 +525,12 @@ def ensure_python(three=None, python=None):
                     '3.5': '3.5.5',
                     '3.6': '3.6.4',
                 }
+                interpreter = "CPython"
+                if python.startswith("pypy"):
+                    interpreter = "PyPy"
+
                 try:
-                    if len(python.split('.')) == 2:
+                    if not python.startswith("pypy") and len(python.split('.')) == 2:
                         # Find the latest version of Python available.
                         version = version_map[python]
                     else:
@@ -521,7 +540,7 @@ def ensure_python(three=None, python=None):
                 s = (
                     '{0} {1} {2}'.format(
                         'Would you like us to install',
-                        crayons.green('CPython {0}'.format(version)),
+                        crayons.green('{0} {1}'.format(interpreter, version.replace("pypy",""))),
                         'with pyenv?',
                     )
                 )
@@ -533,7 +552,7 @@ def ensure_python(three=None, python=None):
                     click.echo(
                         u'{0} {1} {2} {3}{4}'.format(
                             crayons.normal(u'Installing', bold=True),
-                            crayons.green(u'CPython {0}'.format(version), bold=True),
+                            crayons.green(u'{0} {1}'.format(interpreter, version.replace("pypy","")), bold=True),
                             crayons.normal(u'with pyenv', bold=True),
                             crayons.normal(u'(this may take a few minutes)'),
                             crayons.normal(u'…', bold=True),
@@ -560,7 +579,10 @@ def ensure_python(three=None, python=None):
                     # Find the newly installed Python, hopefully.
                     path_to_python = find_a_system_python(version)
                     try:
-                        assert python_version(path_to_python) == version
+                        if version.startswith("pypy"):
+                            assert path_to_python is not None
+                        else:
+                            assert python_version(path_to_python) == version
                     except AssertionError:
                         click.echo(
                             '{0}: The Python you just installed is not available on your {1}, apparently.'

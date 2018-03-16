@@ -180,6 +180,32 @@ def cleanup_toml(tml):
     return toml
 
 
+def pypy_version(path_to_python):
+    if not path_to_python:
+        return None
+
+    try:
+        c = delegator.run([path_to_python, '--version'], block=False)
+    except Exception:
+        return None
+
+    output = c.out.strip() or c.err.strip()
+
+    @parse.with_pattern(r'.*')
+    def allow_empty(text):
+        return text
+
+    TEMPLATE = 'Python {}.{}.{:d} ({})\n[Pypy {}.{}.{}{:AllowEmpty}'
+    parsed = parse.parse(TEMPLATE, output, dict(AllowEmpty=allow_empty))
+    if parsed:
+        parsed = parsed.fixed
+    else:
+        return None
+
+    tmp = u"pypy{v[0]}.{v[1]}-{v[4]}.{v[5]}.{v[6]}".format(v=parsed)
+
+    return tmp
+
 def python_version(path_to_python):
     if not path_to_python:
         return None
